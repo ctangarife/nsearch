@@ -21,52 +21,69 @@ def initSetup():
     try:
         cursor = __dbconnect()["cursor"]
         # Create Script Table
-        cursor.execute(
-            """
-      create table if not exists scripts(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,name TEXT NOT NULL,
-      author TEXT NULL)
-    """
-        )
         print(i18n.t("setup.create_script_table"))
+        try:
+            cursor.execute(
+            """
+                create table if not exists scripts(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,name TEXT NOT NULL,author TEXT NULL);"""
+            )
+        except Exception as e:
+            print("No se pudo generar la tabla scripts")
+            print("="*10)
+            print(e)
+            print("="*10)
+        
         # Create Categories Table
-        cursor.execute(
-            """create table if not exists categories(
-      id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-       name TEXT NOT NULL)
-    """
-        )
         print(i18n.t("setup.create_category_table"))
-        # Create Script/Category Table
-        cursor.execute(
-            """create table if not exists script_category(
-      id_category INTEGER NOT NULL,
-      id_script INETGER NOT NULL)
-    """
-        )
-        print(i18n.t("setup.create_category_script_table"))
-        print(i18n.t("setup.upload_categories"))
-        for category in categories:
+        try:
             cursor.execute(
                 """
-        INSERT INTO categories (name) VALUES (?)
-        """,
-                (category,),
+                create table if not exists categories(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,  name TEXT NOT NULL);"""
             )
-            cursor.close()
-            # Create Favorite Table
+        except Exception as e:
+            print("No se pudo generar la tabla categories")
+            print("="*10)
+            print(e)
+            print("="*10)
+        # Create Script/Category Table
+        print(i18n.t("setup.create_category_script_table"))
+        try:
+            cursor.execute(
+                """
+                create table if not exists script_category( id_category INTEGER NOT NULL, id_script INETGER NOT NULL);"""
+            )
+            print(i18n.t("setup.upload_categories"))
+            for category in categories:
+                cursor.execute(
+                    """
+                    INSERT INTO categories (name) VALUES (?); """,(category,))
+        except Exception as e:
+            print("No se pudo generar la tabla script_category")
+            print("="*10)
+            print(e)
+            print("="*10)
+        # Create Favorite Table
         print(i18n.t("setup.create_favorites_table"))
-        cursor.execute(
+        try:
+            cursor.execute(
             """
-      create table if not exists favorites (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,name TEXT NOT NULL UNIQUE,
-      ranking TEXT NOT NULL)
-    """
-        )
+                create table if not exists favorites (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,name TEXT NOT NULL UNIQUE,
+                ranking TEXT NOT NULL)
+                """
+            )
+        except Exception as e:
+            print("No se pudo generar la tabla favoritos")
+            print("="*10)
+            print(e)
+            print("="*10)
+            
+        cursor.close()
+        
+        
         __dbconnect()["db"].commit()
         __dbconnect()["db"].close()
         setData()
         createBackUp()
-        cursor.close()
-        db.close()
     except Exception as e:
         print("Error %s:" % e.args[0])
         sys.exit(1)
@@ -116,10 +133,24 @@ def setData():
                                 "Brandon Enright <bmenrigh@ucsd.edu>, Duane Wessels <wessels@dns-oarc.net>",
                             )
                         )
-                lastrowid = insertScript(value, author)
+                try:
+                    lastrowid = insertScript(value, author)
+                except Exception as e:
+                    print('Error insertScriptCategory')
+                    print("="*10)
+                    print(e)
+                    print('='*10)
                 currentScript.close()
             else:
-                insertScriptCategory(lastrowid, value)
+                try:
+                    insertScriptCategory(lastrowid, value)
+                except Exception as e:
+                    print('Error insertScriptCategory')
+                    print("="*10)
+                    print(e)
+                    print('='*10)
+
+                
     scriptFile.close()
 
 
@@ -165,6 +196,7 @@ def updateApp():
 
 # Insert each Script and Author
 def insertScript(script, author):
+    print('Entra aca')
     db = None
     try:
         db = lite.connect(dbname)
@@ -172,24 +204,21 @@ def insertScript(script, author):
         cursor = db.cursor()
         cursor.execute(
             """
-    Insert into scripts (name,author) values (?,?)
-    """,
-            (
-                script,
-                author,
-            ),
-        )
+            Insert into scripts (name,author) values (?,?)""",
+            (script,author,))
+        cursor.close()
         db.commit()
         db.close()
-        cursor.close()
         return cursor.lastrowid
     except Exception as e:
         if db:
             db.rollback()
+            db.close()
         print("Error %s:" % e.args[0])
     finally:
         if db:
             db.close()
+           
 
 
 # Insert the scripts_id and categories_id
@@ -200,13 +229,8 @@ def insertScriptCategory(scriptid, categoryid):
         cursor = db.cursor()
         cursor.execute(
             """
-    INSERT INTO script_category (id_category,id_script) VALUES (?,?)
-    """,
-            (
-                categoryid,
-                scriptid,
-            ),
-        )
+            INSERT INTO script_category (id_category,id_script) VALUES (?,?)""",
+            (categoryid,scriptid,))
         db.commit()
         if cursor.rowcount == 1:
             print("[+] " + str(categoryid) + " " + i18n.t("setup.update_fav_ok"))
@@ -215,7 +239,8 @@ def insertScriptCategory(scriptid, categoryid):
     except Exception as e:
         if db:
             db.rollback()
-            print("Error %s:" % e.args[0])
+            db.close()
+        print("Error %s:" % e.args[0])
     finally:
         if db:
             db.close()
@@ -231,6 +256,8 @@ def searchAll():
         cursor.execute(
             "select id, name, author from scripts GROUP BY NAME ORDER BY NAME"
         )
+        cursor.close()
+        db.close()
         return __fetchScript(cursor.fetchall())
     except Exception as e:
         print("Error %s:" % e.args[0])
