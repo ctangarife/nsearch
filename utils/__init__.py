@@ -1,5 +1,5 @@
+import os
 from dbmodule import *
-
 
 class Helper:
     def __init__(self, args="", commnad=""):
@@ -10,25 +10,23 @@ class Helper:
     def process(self):
         if self.commnad == "search":
             if not self.args:
-                dbmodule.lastresults = dbmodule.searchAll()
+                lastresults = searchAll()
                 self.printlastResult()
             else:
-                dbmodule.lastresults = dbmodule.searchByCriterial(
-                    **self.__searchparams()
-                )
+                lastresults = searchByCriterial(**self.__searchparams())
                 self.printlastResult()
         elif self.commnad == "addfav":
-            dbmodule.createFavorite(**self.__addfavparams())
+            createFavorite(**self.__addfavparams())
         elif self.commnad == "modfav":
-            dbmodule.updateFavorite(**self.__modfavparams())
+            updateFavorite(**self.__modfavparams())
         elif self.commnad == "delfav":
-            dbmodule.deleteFavorite(**self.__delfavparams())
+            deleteFavorite(**self.__delfavparams())
         elif self.commnad == "showfav":
             if not self.args:
-                dbmodule.lastresults = dbmodule.getFavorites()
+                lastresults = getFavorites()
                 self.printlastResult(True)
             else:
-                dbmodule.lastresults = dbmodule.getFavorites(**self.__showfavparams())
+                lastresults = getFavorites(**self.__showfavparams())
                 self.printlastResult(True)
         else:
             print("Error")
@@ -37,7 +35,7 @@ class Helper:
     def printlastResult(self, fav=False):
         if fav:
             print("\033[1;32m*** {0:40} {1:40}\033[0m".format(*["Name", "Ranking"]))
-            for key, value in dbmodule.lastresults.items():
+            for key, value in lastresults.items():
                 print(
                     "\033[1;32m[+] {0:40} {1:35}\033[0m".format(
                         *[value["name"], value["ranking"]]
@@ -45,7 +43,7 @@ class Helper:
                 )
         else:
             print("\033[1;32m*** {0:40} {1:40}\033[0m".format(*["Name", "Author"]))
-            for key, value in dbmodule.lastresults.items():
+            for key, value in lastresults.items():
                 print(
                     "\033[1;32m[+] {0:40} {1:35}\033[0m".format(
                         *[value["name"], value["author"]]
@@ -54,19 +52,25 @@ class Helper:
 
     # Display the documentation per script
     def displayDoc(self):
-        scriptFile = open(dbmodule.scriptsPath + self.args, "r")
-        lines = scriptFile.read().splitlines()
-        for line in lines:
-            if line.startswith("license"):
-                break
-            print("\033[1;96m" + line + "\033[0m")
-        scriptFile.close()
+        try:
+            scriptFile = open(scriptsPath + self.args, "r")
+            lines = scriptFile.read().splitlines()
+            for line in lines:
+                if line.startswith("license"):
+                    break
+                print("\033[1;96m" + line + "\033[0m")
+            scriptFile.close()
+        except:
+            for line in os.listdir(scriptsPath):
+                print("\033[1;96m" + line + "\033[0m")
+                
+            print("Pass the script to get the documentation")
 
     # used for the autocomplete
     def resultitems(self):
         i = 0
         items = []
-        for k, v in dbmodule.lastresults.items():
+        for k, v in lastresults.items():
             items.insert(i, v["name"])
             i = i + 1
         return items

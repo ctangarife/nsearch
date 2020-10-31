@@ -52,6 +52,7 @@ def initSetup():
         """,
                 (category,),
             )
+            cursor.close()
             # Create Favorite Table
         print(i18n.t("setup.create_favorites_table"))
         cursor.execute(
@@ -135,6 +136,7 @@ def updateApp():
       ranking TEXT NOT NULL)
     """
         )
+        cursor.close()
         if hashlib.md5(open(filePath, "rb").read()).hexdigest() == currentChecksum:
             print(i18n.t("setup.db_is_update") + " " + dbname)
         else:
@@ -208,7 +210,7 @@ def insertScriptCategory(scriptid, categoryid):
         db.commit()
         if cursor.rowcount == 1:
             print("[+] " + str(categoryid) + " " + i18n.t("setup.update_fav_ok"))
-        
+        cursor.close()
         db.close()
     except Exception as e:
         if db:
@@ -217,7 +219,6 @@ def insertScriptCategory(scriptid, categoryid):
     finally:
         if db:
             db.close()
-
 
 # get all scripts
 def searchAll():
@@ -230,14 +231,12 @@ def searchAll():
         cursor.execute(
             "select id, name, author from scripts GROUP BY NAME ORDER BY NAME"
         )
-        db.close()
         return __fetchScript(cursor.fetchall())
     except Exception as e:
         print("Error %s:" % e.args[0])
     finally:
         if db:
             db.close()
-
 
 # set script as a favorite
 def createFavorite(**kwargs):
@@ -267,15 +266,14 @@ def createFavorite(**kwargs):
                 ),
             )
             db.commit()
+            cursor.close()
             if cursor.rowcount == 1:
                 print("[+] " + script + " " + i18n.t("setup.add_fav_ok"))
-            db.close()
         except Exception as e:
             print("[-] " + script + " " + i18n.t("setup.add_fav_error"))
         finally:
             if db:
                 db.close()
-
 
 # update favorite row
 def updateFavorite(**kwargs):
@@ -333,7 +331,6 @@ def updateFavorite(**kwargs):
             db.commit()
             if cursor.rowcount == 1:
                 print("[+] " + script + " " + i18n.t("setup.update_fav_ok"))
-            db.close()
         except Exception as e:
             print("Error %s:" % e.args[0])
             print("[-] " + script + " " + i18n.t("setup.update_fav_error"))
@@ -361,7 +358,6 @@ def deleteFavorite(**kwargs):
                 db.commit()
             if cursor.rowcount == 1:
                 print("[+] " + script + " " + i18n.t("setup.del_fav_ok"))
-            db.close()
         except Exception as e:
             print("[-] " + script + " " + i18n.t("setup.del_fav_error"))
         finally:
