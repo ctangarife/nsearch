@@ -2,8 +2,8 @@ import sqlite3 as lite
 import sys, yaml, hashlib, shutil, os
 import i18n
 
-stream = open("config.yaml", "r")
-item = yaml.load(stream)
+with open(r'./config.yaml') as file:
+    item = yaml.load(file, Loader=yaml.FullLoader)
 
 dbname = item["config"]["scriptdb"]
 categories = item["config"]["categories"]
