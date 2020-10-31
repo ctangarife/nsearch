@@ -53,10 +53,10 @@ def initSetup():
                 create table if not exists script_category( id_category INTEGER NOT NULL, id_script INETGER NOT NULL);"""
             )
             print(i18n.t("setup.upload_categories"))
-            for category in categories:
-                cursor.execute(
-                    """
-                    INSERT INTO categories (name) VALUES (?); """,(category,))
+            # for category in categories:
+            #     cursor.execute(
+            #         """
+            #         INSERT INTO categories (name) VALUES (?); """,(category,))
         except Exception as e:
             print("No se pudo generar la tabla script_category")
             print("="*10)
