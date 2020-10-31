@@ -82,6 +82,9 @@ def initSetup():
         setData()
         createBackUp()
     except Exception as e:
+        print("="*10)
+        print(e)
+        print("="*10)
         print("Error %s:" % e.args[0])
         sys.exit(1)
     finally:
