@@ -76,10 +76,7 @@ def initSetup():
             print("="*10)
             print(e)
             print("="*10)
-            
-        cursor.close()
-        
-        
+                
         __dbconnect()["db"].commit()
         __dbconnect()["db"].close()
         setData()
